@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
-
+from typing import List, Optional
 
 app = FastAPI()
 
@@ -81,5 +81,35 @@ async def get_drug_info(drug_names: str):
             all_drug_info.append(drug_info)
 
         return all_drug_info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+#usage = GET /drugs/getAttribute/Aspirin?attribute=warnings <- returns the warnings for Aspirin
+@app.get("/drugs/getAttribute/{drug_name}")
+async def get_drug_attribute(drug_name: str, attribute: str):
+    try:
+        url = f'https://api.fda.gov/drug/label.json?search=openfda.brand_name:"{drug_name}"&limit=1'
+        response = requests.get(url)
+        data = response.json()
+
+        if "results" not in data or len(data["results"]) == 0:
+            raise HTTPException(status_code=404, detail=f"Drug '{drug_name}' not found")
+
+        result = data["results"][0]
+        openfda = result.get("openfda", {})
+
+        # Attempt to retrieve the attribute from the result or openfda dictionaries
+        attribute_value = result.get(attribute) or openfda.get(attribute)
+
+        if not attribute_value:
+            raise HTTPException(status_code=404, detail=f"Attribute '{attribute}' not found for drug '{drug_name}'")
+
+        return {
+            "drug_name": drug_name,
+            "attribute": attribute,
+            "value": attribute_value
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
