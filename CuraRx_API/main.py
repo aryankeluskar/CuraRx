@@ -2,10 +2,8 @@ import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
-from collections.abc import Callable  # Changed from typing.Callable
 
 app = FastAPI()
-
 # Get Supabase credentials from environment variables
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
