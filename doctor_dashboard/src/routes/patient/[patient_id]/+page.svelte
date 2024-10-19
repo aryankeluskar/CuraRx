@@ -1,101 +1,281 @@
 <script>
-    import { page } from '$app/stores';
-  
-    // Get the patient_id from the URL
-    const patient_id = $page.params.patient_id;
+  import { page } from '$app/stores';
 
-    let patientData = 
-      {
-  "name": "John Doe",
-  "uuid": "987e6543-a21b-12c3-b456-426614174000",
-  "sex": "M",
-  "success_percentage": 85,
-  "preexisting_conditions": "Hypertension, Type 2 Diabetes",
-  "last_checkin": "2024-10-18T14:30:00",
-  "last_set_of_notes": "Patient has shown improved adherence to Metformin, blood sugar levels have stabilized.",
-  "health_level": 7,
-  "medication_schedule": [
-    {
-      "drugName": "Metformin",
-      "drugNickname": "Met",
-      "drugUUID": "123e4567-e89b-12d3-a456-426614174000",
-      "start_date": "2023-01-01",
-      "end_date": "2023-12-31",
-      "dosage": "500mg",
-      "times": {
-        "monday": ["14:00", "16:00"],
-        "tuesday": null,
-        "wednesday": ["15:00"],
-        "thursday": null,
-        "friday": ["14:00", "16:00"],
-        "saturday": null,
-        "sunday": null
-      }
-    },
-    {
-      "drugName": "Vitamin D",
-      "drugNickname": "Sunshine",
-      "drugUUID": "123e4567-e89b-12d3-a456-426614174001",
-      "start_date": "2023-03-01",
-      "end_date": "2023-09-30",
-      "dosage": "1000 IU",
-      "times": {
-        "monday": ["09:00"],
-        "tuesday": null,
-        "wednesday": null,
-        "thursday": ["09:00"],
-        "friday": null,
-        "saturday": null,
-        "sunday": null
-      }
-    },
-    {
-      "drugName": "Aspirin",
-      "drugNickname": "Heart Helper",
-      "drugUUID": "123e4567-e89b-12d3-a456-426614174002",
-      "start_date": "2023-06-01",
-      "end_date": null,
-      "dosage": "81mg",
-      "times": {
-        "monday": null,
-        "tuesday": ["08:00"],
-        "wednesday": null,
-        "thursday": ["08:00"],
-        "friday": null,
-        "saturday": ["08:00"],
-        "sunday": null
-      }
-    }
-  ]
-};
-    
-  
-    // You can now use this id to fetch patient data, display it, etc.
-    /**
-     * @param {any} patient_id
-     */
-    function getPatientData(patient_id) {
-      // Fetch patient data from the server
-      console.log('Fetching patient data for patient ID:', patient_id);
-      return 123;
-    }
+  // Get the patient_id from the URL
+  $: patient_id = $page.params.patient_id;
+
+  let patientData = {
+      "name": "John Doe",
+      "uuid": "987e6543-a21b-12c3-b456-426614174000",
+      "sex": "M",
+      "success_percentage": 85,
+      "preexisting_conditions": "Hypertension, Type 2 Diabetes",
+      "last_checkin": "2024-10-18T14:30:00",
+      "last_set_of_notes": "Patient has shown improved adherence to Metformin, blood sugar levels have stabilized.",
+      "health_level": 7,
+      "medication_schedule": [
+          {
+              "drugName": "Metformin",
+              "drugNickname": "Met",
+              "dosage": "500mg",
+              "times": {
+                  "monday": ["14:00", "16:00"],
+                  "wednesday": ["15:00"],
+                  "friday": ["14:00", "16:00"]
+              }
+          },
+          {
+              "drugName": "Vitamin D",
+              "drugNickname": "Sunshine",
+              "dosage": "1000 IU",
+              "times": {
+                  "monday": ["09:00"],
+                  "thursday": ["09:00"]
+              }
+          },
+          {
+              "drugName": "Aspirin",
+              "drugNickname": "Heart Helper",
+              "dosage": "81mg",
+              "times": {
+                  "tuesday": ["08:00"],
+                  "thursday": ["08:00"],
+                  "saturday": ["08:00"]
+              }
+          }
+      ]
+  };
 
 
+  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+  function getMedicationsForDay(day) {
+    return patientData.medication_schedule.filter(med => 
+      med.times[day.toLowerCase()] && med.times[day.toLowerCase()].length > 0
+    );
+  }
 
-  </script>
-  
-  <h1>Patient ID: {patient_id}</h1>
+  function formatTime(time) {
+    return new Date(`1970-01-01T${time}`).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  }
+</script>
 
+<div class="patient-dashboard">
+  <div class="patient-header">
+    <h1>{patientData.name} (ID: {patient_id})</h1>
+    <p><strong>UUID:</strong> {patientData.uuid}</p>
+    <p><strong>Gender:</strong> {patientData.sex === 'M' ? 'Male' : 'Female'}</p>
+    <p><strong>Health Level:</strong> {patientData.health_level}/10</p>
+    <p><strong>Last Check-In:</strong> {new Date(patientData.last_checkin).toLocaleString()}</p>
+  </div>
 
-  
-  <!-- Example where you might fetch patient details -->
-  <!--
-  {#await fetchPatientData(patient_id) then patient}
-    <p>Name: {patient.name}</p>
-    <p>Age: {patient.age}</p>
-  {:catch error}
-    <p>Error loading patient data: {error.message}</p>
-  {/await}
-  -->
+  <div class="patient-bento">
+    <div class="bento-box">
+      <h2>Success Rate</h2>
+      <div class="speedometer">
+        <div class="speedometer-arc">
+          <div class="speedometer-fill" style="--percentage: {patientData.success_percentage}"></div>
+        </div>
+        <div class="speedometer-value">{patientData.success_percentage}%</div>
+      </div>
+    </div>
 
+    <div class="bento-box">
+      <h2>Preexisting Conditions</h2>
+      <p>{patientData.preexisting_conditions}</p>
+    </div>
+
+    <div class="bento-box">
+      <h2>Last Notes</h2>
+      <p>{patientData.last_set_of_notes}</p>
+    </div>
+
+    <div class="medication-calendar">
+      <h2>Weekly Medication Schedule</h2>
+      <div class="calendar-grid">
+        {#each weekDays as day}
+          <div class="calendar-day">
+            <h3>{day}</h3>
+            {#each getMedicationsForDay(day) as med}
+              <div class="medication-pill" style="--pill-color: {med.drugName === 'Metformin' ? '#bae6fd' : med.drugName === 'Vitamin D' ? '#fef3c7' : '#ddd6fe'}">
+                <strong>{med.drugName}</strong>
+                <span class="dosage">({med.dosage})</span>
+                <div class="medication-time">
+                  {#each med.times[day.toLowerCase()] as time}
+                    <span>{formatTime(time)}</span>
+                  {/each}
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  :global(*) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  .patient-dashboard {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+
+  .patient-header {
+    background: linear-gradient(135deg, #2c5282, #2b6cb0);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .patient-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .patient-header p {
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .patient-bento {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .bento-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+  }
+
+  .bento-box:hover {
+    transform: translateY(-2px);
+  }
+
+  .bento-box h2 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  /* Speedometer styles */
+  .speedometer {
+    position: relative;
+    width: 200px;
+    height: 100px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .speedometer-arc {
+    position: relative;
+    width: 200px;
+    height: 100px;
+    background: #e2e8f0;
+    border-radius: 100px 100px 0 0;
+  }
+
+  .speedometer-fill {
+    position: absolute;
+    width: 200px;
+    height: 100px;
+    background: linear-gradient(90deg, #48bb78, #38a169);
+    border-radius: 100px 100px 0 0;
+    clip-path: polygon(50% 100%, 50% 0, 100% 0, 100% 100%);
+    transform-origin: center bottom;
+    transform: rotate(calc((var(--percentage) - 50) * 1.8deg));
+    transition: transform 0.5s ease-out;
+  }
+
+  .speedometer-value {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  /* Calendar styles */
+  .medication-calendar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    grid-column: 1 / -1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .calendar-day {
+    background: #f7fafc;
+    padding: 1rem;
+    border-radius: 8px;
+    min-height: 120px;
+  }
+
+  .calendar-day h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+  }
+
+  .medication-pill {
+    background: var(--pill-color, #ebf4ff);
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    transition: transform 0.2s;
+  }
+
+  .medication-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .medication-pill .dosage {
+    color: #4a5568;
+    font-size: 0.75rem;
+  }
+
+  .medication-time {
+    color: #4a5568;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .medication-time span {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    margin-right: 0.25rem;
+  }
+</style>
