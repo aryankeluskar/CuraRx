@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
+from collections.abc import Callable  # Changed from typing.Callable
 
 app = FastAPI()
 
@@ -23,7 +24,7 @@ async def get_user_data(user_id: str):
         response = supabase.from_("testing").select("*").eq("id", user_id).execute()
         
         # If no records found, return a 404
-        if len(response.data) == 0:
+        if not response.data or len(response.data) == 0:
             raise HTTPException(status_code=404, detail="User not found")
 
         return {"data": response.data}
