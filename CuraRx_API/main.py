@@ -2,15 +2,12 @@ import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
-from typing import List, Optional
 
 app = FastAPI()
 
 # Get Supabase credentials from environment variables
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-
 
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -85,7 +82,7 @@ async def get_drug_info(drug_names: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-#usage = GET /drugs/getAttribute/Aspirin?attribute=warnings <- returns the warnings for Aspirin
+# Usage: GET /drugs/getAttribute/Aspirin?attribute=warnings
 @app.get("/drugs/getAttribute/{drug_name}")
 async def get_drug_attribute(drug_name: str, attribute: str):
     try:
