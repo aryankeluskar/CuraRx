@@ -8,6 +8,8 @@
   </script>
   
   <h1>Patient ID: {patient_id}</h1>
+
+  <hr>
   
   <!-- Example where you might fetch patient details -->
   <!--
@@ -18,3 +20,4 @@
     <p>Error loading patient data: {error.message}</p>
   {/await}
   -->
+
