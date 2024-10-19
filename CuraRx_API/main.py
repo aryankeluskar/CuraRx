@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
+import requests
 
 
 app = FastAPI()
@@ -35,4 +36,12 @@ async def get_user_data(user_id: str):
     
 
 
-    
+@app.get("/drugs/getAllInfo/{drug_name}")
+async def get_drug_info(drug_name: str):
+    try:
+        url = f'https://api.fda.gov/drug/label.json?search=openfda.brand_name:{drug_name}&limit=1'
+        response = requests.get(url)
+        data = response.json()
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
