@@ -161,12 +161,16 @@ async def get_sentiment(audio_url):
     print(init)
 
     # store init in a json file named final.json
-    with open('final.json', 'w') as f:
-        json.dump(init, f)
+    # with open('final.json', 'w') as f:
+    #     json.dump(init, f)
 
     # get top 3 emotions
     top3 = sorted(init, key=lambda x: x['score'], reverse=True)[:3]
     print(top3)
+
+    # get top 5 emotions with their scores
+    top5 = sorted(init, key=lambda x: x['score'], reverse=True)[:5]
+    print(top5)
 
     # store top3 in a string separated by commas
     top3_str = ""
@@ -175,7 +179,15 @@ async def get_sentiment(audio_url):
         if i < len(top3) - 1:
             top3_str += ","
 
-    return top3_str
+    # change top5 keys from "name" to "emotion" and "score" to "accuracy"
+    for i in range(len(top5)):
+        top5[i]["emotion"] = top5[i].pop("name")
+        top5[i]["accuracy"] = top5[i].pop("score")
+
+    return {
+        "top3": top3_str,
+        "top5": top5
+    }
 
 
 @app.get("/patients/{patient_id}")
