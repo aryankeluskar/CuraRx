@@ -10,9 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Dummy data for responses
 const responses = [
-  { id: '1', text: 'Choice 1' },
-  { id: '2', text: 'Choice 2' },
-  { id: '3', text: 'Choice 3' },
+  { id: '1', text: 'Dizziness or lightheadedness' },
+  { id: '2', text: 'Unusual fatigue or drowsiness' },
+  { id: '3', text: 'Nausea or upset stomach' },
 ];
 
 const AnimatedTypingText = ({ text, style, onComplete }) => {
@@ -82,7 +82,7 @@ export default function PersonalizedQsScreen() {
               <Image source={assets[0]} style={styles.speechBubble} resizeMode="contain" />
               <View style={styles.textWrapper}>
                 <AnimatedTypingText
-                  text="Question placeholder here"
+                  text="Since starting your new medication, have you experienced any of the following symptoms?"
                   style={styles.questionText}
                   onComplete={handleTypingComplete}
                 />

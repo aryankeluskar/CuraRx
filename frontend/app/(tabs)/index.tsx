@@ -3,6 +3,8 @@ import { StyleSheet, TouchableOpacity, View, ScrollView, SafeAreaView, StatusBar
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
+import { usePatient } from '../patientContext';
+
 
 type Medication = {
   id: string;
