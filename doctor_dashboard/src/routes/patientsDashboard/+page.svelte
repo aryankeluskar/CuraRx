@@ -1,7 +1,41 @@
 <script lang="ts">
     
     import Sidebar from "../../Sidebar.svelte";
-  </script>
+    import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
+
+    
+    type Patient = {
+        name: string;
+        riskLevel: 'Low' | 'Medium' | 'High';
+        patient_id: string;
+    };
+
+    let patients: Patient[] = [];
+
+    onMount(async () => {
+        try {
+            const response = await fetch('https://cura-rx.vercel.app/patientsOverview');
+            const data = await response.json();
+            patients = data.patients;
+        } catch (error) {
+            console.error('Error fetching patients:', error);
+        }
+    });
+
+    function getRiskColor(riskLevel: string): string {
+        switch (riskLevel) {
+            case "Low": return "#28C840";
+            case "Medium": return "#FDBC2C";
+            case "High": return "#F35A51";
+            default: return "#CCCCCC";
+        }
+    }
+
+    function navigateToPatient(patientId: number) {
+        goto(`/patient/${patientId}`);
+    }
+</script>
   
   <div class="dashboard-container">
     <Sidebar />
@@ -10,48 +44,23 @@
         <h1>Patients</h1>
       </div>
       <div class="patient-bento">
-
-        <div class="zone-bento-box">
-          <div class="zone-header" style="background: #28C840;">
-            <h2>Low Risk</h2>
+        {#each ['Low', 'Medium', 'High'] as riskLevel}
+          <div class="zone-bento-box">
+            <div class="zone-header" style="background: {getRiskColor(riskLevel)};">
+              <h2>{riskLevel} Risk</h2>
+            </div>
+            {#each patients.filter(patient => patient.riskLevel === riskLevel) as patient}
+              <div class="patient-cell">
+                <p>{patient.name}</p>
+                <button class="transparent-button" on:click={() => navigateToPatient(patient.patient_id)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
+            {/each}
           </div>
-          <div class="patient-cell">
-            <p>Dora Shebout</p>
-            <button class="transparent-button" on:click={() => console.log("hi")}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="zone-bento-box">
-          <div class="zone-header" style="background: #FDBC2C;">
-            <h2>Medium Risk</h2>
-          </div>
-          <div class="patient-cell">
-            <p>Dora Shebout</p>
-            <button class="transparent-button" on:click={() => console.log("hi")}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="zone-bento-box">
-          <div class="zone-header" style="background: #F35A51;">
-            <h2>High Risk</h2>
-          </div>
-          <div class="patient-cell">
-            <p>Dora Shebout</p>
-            <button class="transparent-button" on:click={() => console.log("hi")}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/each}
       </div>
     
     </div>
@@ -79,6 +88,7 @@
       border-radius: 16px;
       display: flex;
       justify-content: space-between;
+      margin-top: 1rem;
     }
   
     .patient-dashboard {

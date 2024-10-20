@@ -54,7 +54,7 @@
 
       <!-- X-Axis Tick Labels -->
       <text fill="currentColor" text-anchor="middle" x={xScale(tick)} y={22}>
-        {tick.getFullYear()}
+        {tick.getDate()}
       </text>
     {/each}
   </g>
@@ -103,9 +103,9 @@
 
     <!-- Y-Axis Label -->
     <text fill="currentColor" text-anchor="start" x={-marginLeft} y={15}>
-      ↑ Daily close ($)
+      ↑ Taken Medications (%)
     </text>
   </g>
 
-  <path fill="none" stroke="steelblue" stroke-width="1.5" d={line(data)} />
+  <path fill="none" stroke="#4F49BD" stroke-width="3.5" d={line(data)} />
 </svg>

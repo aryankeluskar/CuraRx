@@ -113,6 +113,7 @@
     border-radius: 16px;
     transition: transform 0.2s;
     grid-column: span 2;  /* Make it span all 3 columns */
+    
   }
   .donut-bento-box {
     background: white;

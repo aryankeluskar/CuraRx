@@ -45,7 +45,7 @@
   .sidebar-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #2d3748;
+    color: #4F49BD;
   }
 
   nav ul {
