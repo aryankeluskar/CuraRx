@@ -8,6 +8,7 @@
 
   // Retrieve patient_id directly from the route using page store
   $: patient_id = $page.params.patient_id;
+  //pushing for new link
 
   onMount(async () => {
     try {
