@@ -2,27 +2,31 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
 
-  // Get the patient_id from the URL
-  $: patient_id = $page.params.patient_id;
-
+  let patient_id;
   let patientData = null;
   let error = null;
 
-  // Fetch the patient data from the API when the component mounts
+  // Retrieve patient_id directly from the route using page store
+  $: patient_id = $page.params.patient_id;
+
   onMount(async () => {
     try {
-  
-      const response = await fetch(`https://cura-rx.vercel.app/patients/faac91c6-63e7-4a0f-954f-ee1bc997d27c`);
-      const data = await response.json();
-      console.log(data)
-      patientData = data.data[0];
+      if (patient_id) {
+        console.log(patient_id);
+        const response = await fetch(`https://cura-rx.vercel.app/patients/${patient_id}`);
+        if (!response.ok) throw new Error('Failed to fetch patient data');
 
-      // Handle any formatting anomalies if needed
-      patientData.preexisting_conditions = patientData.preexisting_conditions.replace(/,\s+/g, ', ');
-      patientData.last_checkin = new Date(patientData.last_checkin).toLocaleString();
+        const data = await response.json();
+        patientData = data.data[0];
+
+        // Handle data formatting anomalies
+        patientData.preexisting_conditions = patientData.preexisting_conditions.replace(/,\s+/g, ', ');
+        patientData.last_checkin = new Date(patientData.last_checkin).toLocaleString();
+      } else {
+        error = 'No patient ID provided in the URL';
+      }
     } catch (err) {
-      error = 'Failed to load patient data. Please try again later.';
-      console.error(err);
+      error = err.message;
     }
   });
 
