@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-
+  import Sidebar from '../../../Sidebar.svelte';
   let patient_id;
   let patientData = null;
   let error = null;
@@ -47,8 +47,9 @@
     });
   }
 </script>
-
-<div class="patient-dashboard">
+<div class="dashboard-container">
+  <Sidebar />
+  <div class="patient-dashboard">
   {#if error}
     <p>{error}</p>
   {:else if patientData}
@@ -105,7 +106,8 @@
     </div>
   {:else}
     <p>Loading patient data...</p>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -115,11 +117,14 @@
     box-sizing: border-box;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
-
+  .dashboard-container {
+    display: flex;
+  }
   .patient-dashboard {
-    max-width: 1200px;
-    margin: 2rem auto;
+    flex-grow: 1;
+    max-width: calc(100% - 250px);
     padding: 2rem;
+    background-color: #F7F7FC;
   }
 
   .patient-header {
