@@ -80,3 +80,17 @@ async def get_drug_info(drug_names: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.get("/patients/{patient_id}")
+async def get_patient_data(patient_id: str):
+    try:
+        # Query the Supabase table named 'patients' where 'id' matches the patient_id
+        response = supabase.from_("patients").select("*").eq("id", patient_id).execute()
+        
+        # If no records found, return a 404
+        if not response.data or len(response.data) == 0:
+            raise HTTPException(status_code=404, detail="Patient not found")
+
+        return {"data": response.data}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
