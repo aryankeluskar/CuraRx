@@ -1,6 +1,6 @@
 // symptoms-confirm.tsx
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Dimensions, Image, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
@@ -49,10 +49,13 @@ export default function SymptomsConfirmScreen() {
   };
 
   const handleResponse = (response: 'yes' | 'no') => {
+    // TODO: Send response to the backend
+    console.log('User response:', response);
+    
     if (response === 'yes') {
       router.push('/explore/patient-stt-interface');
     } else {
-      router.push('/explore');
+      router.push('/explore/additional-info');
     }
   };
 
@@ -61,7 +64,7 @@ export default function SymptomsConfirmScreen() {
   }));
 
   if (!assets) {
-    return null; // or a loading indicator
+    return null; 
   }
 
   return (
@@ -70,31 +73,33 @@ export default function SymptomsConfirmScreen() {
       locations={[0, 0.15, 0.52]}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <View style={styles.speechBubbleContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <View style={styles.speechBubbleContainer}>
+            <Image
+              source={assets[0]}
+              style={styles.speechBubble}
+              resizeMode="contain"
+            />
+            <View style={styles.textWrapper}>
+              <AnimatedTypingText
+                text="Are you experiencing any new or unusual symptoms?"
+                style={styles.questionText}
+                onComplete={handleTypingComplete}
+              />
+            </View>
+          </View>
           <Image
-            source={assets[0]}
-            style={styles.speechBubble}
+            source={assets[1]}
+            style={styles.curaBot}
             resizeMode="contain"
           />
-          <View style={styles.textWrapper}>
-            <AnimatedTypingText
-              text="Are you experiencing any new or unusual symptoms?"
-              style={styles.questionText}
-              onComplete={handleTypingComplete}
-            />
-          </View>
+          <Animated.View style={[styles.buttonContainer, fadeAnimStyle]}>
+            <ResponseButton title="YES" onPress={() => handleResponse('yes')} />
+            <ResponseButton title="NO" onPress={() => handleResponse('no')} />
+          </Animated.View>
         </View>
-        <Image
-          source={assets[1]}
-          style={styles.curaBot}
-          resizeMode="contain"
-        />
-        <Animated.View style={[styles.buttonContainer, fadeAnimStyle]}>
-          <ResponseButton title="YES" onPress={() => handleResponse('yes')} />
-          <ResponseButton title="NO" onPress={() => handleResponse('no')} />
-        </Animated.View>
-      </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -102,15 +107,14 @@ export default function SymptomsConfirmScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 10,
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
-    alignItems: 'center',
-    width: '100%',
     flex: 1,
     justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingBottom: 50,
   },
   speechBubbleContainer: {
@@ -143,7 +147,7 @@ const styles = StyleSheet.create({
   curaBot: {
     width: 300,
     height: 188,
-    marginBottom: 70,
+    marginBottom: 100,
   },
   buttonContainer: {
     width: '100%',

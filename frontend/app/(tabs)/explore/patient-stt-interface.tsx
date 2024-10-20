@@ -87,15 +87,15 @@ export default function PatientSTTInterface() {
   const handleDonePress = () => {
     if (hasRecorded) {
       console.log('DONE button pressed. Recording data ready to be sent.');
-      // Here you would typically send the recording data to your backend
-      // For now, we'll just simulate a successful send
+      // Simulate sending the recording data to the backend
       setTimeout(() => {
         console.log('Recording data sent successfully');
-        // Navigate to the next screen or back to index
-        router.push('/explore');
+        // Navigate to the health-level screen
+        router.push('/explore/health-level');
       }, 1000);
     }
   };
+
 
   const fadeAnimStyle = useAnimatedStyle(() => ({
     opacity: fadeAnim.value,
