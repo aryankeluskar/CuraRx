@@ -2,8 +2,6 @@ import os
 import requests
 import json
 
-from dotenv import load_dotenv
-load_dotenv()
 
 def get_intents(audio_url):
     headers = {

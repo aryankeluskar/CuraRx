@@ -9,9 +9,6 @@ from hume.empathic_voice import (
 )
 import os
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from hume import HumeClient
 
 client = HumeClient(
