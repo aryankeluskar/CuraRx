@@ -1,102 +1,215 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React from 'react';
+import { StyleSheet, View, ScrollView, SafeAreaView, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Ionicons } from '@expo/vector-icons';
+import { LineChart, BarChart } from 'react-native-chart-kit';
 
-export default function TabTwoScreen() {
+const ProfileSection = () => (
+  <View style={styles.section}>
+    <View style={styles.profileHeader}>
+      <View style={styles.avatarContainer}>
+        <Ionicons name="person" size={60} color="#FFFFFF" />
+      </View>
+      <View style={styles.profileInfo}>
+        <ThemedText style={styles.name}>Ada Bruin</ThemedText>
+        <ThemedText style={styles.details}>Age: 28 • Female</ThemedText>
+      </View>
+    </View>
+  </View>
+);
+
+const AdherenceSummary = () => (
+  <View style={styles.section}>
+    <ThemedText style={styles.sectionTitle}>Adherence Summary</ThemedText>
+    <View style={styles.adherenceStats}>
+      <View style={styles.adherenceItem}>
+        <ThemedText style={styles.adherenceValue}>15</ThemedText>
+        <ThemedText style={styles.adherenceLabel}>Current Streak</ThemedText>
+      </View>
+      <View style={styles.adherenceItem}>
+        <ThemedText style={styles.adherenceValue}>87%</ThemedText>
+        <ThemedText style={styles.adherenceLabel}>Adherence Rate</ThemedText>
+      </View>
+      <View style={styles.adherenceItem}>
+        <ThemedText style={styles.adherenceValue}>45</ThemedText>
+        <ThemedText style={styles.adherenceLabel}>Completed Days</ThemedText>
+      </View>
+    </View>
+    <BarChart
+      data={{
+        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+        datasets: [{
+          data: [3, 2, 3, 3, 2, 3, 3]
+        }]
+      }}
+      width={300}
+      height={200}
+      yAxisLabel=""
+      chartConfig={{
+        backgroundColor: '#FFFFFF',
+        backgroundGradientFrom: '#FFFFFF',
+        backgroundGradientTo: '#FFFFFF',
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(162, 155, 255, ${opacity})`,
+        style: {
+          borderRadius: 16
+        }
+      }}
+      style={{
+        marginVertical: 8,
+        borderRadius: 16
+      }}
+    />
+    <ThemedText style={styles.chartLabel}>Weekly Medication Taken</ThemedText>
+  </View>
+);
+
+const HealthOverview = () => (
+  <View style={styles.section}>
+    <ThemedText style={styles.sectionTitle}>Health Overview</ThemedText>
+    <View style={styles.healthStats}>
+      <View style={styles.healthItem}>
+        <ThemedText style={styles.healthValue}>120/80</ThemedText>
+        <ThemedText style={styles.healthLabel}>Blood Pressure</ThemedText>
+      </View>
+      <View style={styles.healthItem}>
+        <ThemedText style={styles.healthValue}>72</ThemedText>
+        <ThemedText style={styles.healthLabel}>Heart Rate (bpm)</ThemedText>
+      </View>
+    </View>
+    <LineChart
+      data={{
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+          data: [65, 68, 66, 70, 69, 72]
+        }]
+      }}
+      width={300}
+      height={200}
+      yAxisLabel=""
+      chartConfig={{
+        backgroundColor: '#FFFFFF',
+        backgroundGradientFrom: '#FFFFFF',
+        backgroundGradientTo: '#FFFFFF',
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(162, 155, 255, ${opacity})`,
+        style: {
+          borderRadius: 16
+        }
+      }}
+      bezier
+      style={{
+        marginVertical: 8,
+        borderRadius: 16
+      }}
+    />
+    <ThemedText style={styles.chartLabel}>6-Month Heart Rate Trend</ThemedText>
+  </View>
+);
+
+export default function ProfileScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={<Ionicons size={310} name="code-slash" style={styles.headerImage} />}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText> library
-          to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <LinearGradient
+      colors={['#A29BFF', '#EFEFFF']}
+      style={styles.gradientContainer}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ProfileSection />
+          <AdherenceSummary />
+          <HealthOverview />
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  gradientContainer: {
+    flex: 1,
   },
-  titleContainer: {
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  section: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  profileHeader: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#A29BFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  details: {
+    fontSize: 16,
+    color: '#666',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+  },
+  adherenceStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  adherenceItem: {
+    alignItems: 'center',
+  },
+  adherenceValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#A29BFF',
+  },
+  adherenceLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  healthStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  healthItem: {
+    alignItems: 'center',
+  },
+  healthValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#A29BFF',
+  },
+  healthLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  chartLabel: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
   },
 });

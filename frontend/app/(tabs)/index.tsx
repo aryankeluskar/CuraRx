@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, View, ScrollView, SafeAreaView, StatusBar, TextInput, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
+import { usePatient } from '../patientContext';
+
 
 type Medication = {
   id: string;
@@ -13,18 +14,45 @@ type Medication = {
   taken: boolean;
 };
 
+type ChatMessage = {
+  id: string;
+  text: string;
+  sender: 'user' | 'cura';
+  status: 'sent' | 'received' | 'loading';
+};
+
 const initialMedications: Medication[] = [
   { id: '1', name: 'Acetaminophen', time: '8:00 AM', dose: '325mg', taken: false },
-  { id: '2', name: 'Acetaminophen', time: '9:00 AM', dose: '325mg', taken: false },
-  { id: '3', name: 'Acetaminophen', time: '4:00 PM', dose: '325mg', taken: false },
+  { id: '2', name: 'Zoloft', time: '9:00 AM', dose: '50mg', taken: false },
+  { id: '3', name: 'Benadryl', time: '4:00 PM', dose: '25mg', taken: false },
 ];
 
-const weekDays = ['M', 'T', 'T', 'W', 'Th', 'Sa', 'Su'];
+const weekDays = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'];
 const monthDates = [14, 15, 16, 17, 18, 19, 20];
+
+const LoadingDots = () => {
+  const [opacity] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.Text style={[styles.loadingText, { opacity }]}>...</Animated.Text>
+  );
+};
 
 export default function HomeScreen() {
   const [medications, setMedications] = useState<Medication[]>(initialMedications);
-  const [activeTab, setActiveTab] = useState<'SCHEDULE' | 'DEEP DIVE'>('SCHEDULE');
+  const [activeTab, setActiveTab] = useState<'SCHEDULE' | 'INSIGHTS'>('SCHEDULE');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const toggleMedication = (id: string) => {
     setMedications(meds =>
@@ -39,6 +67,54 @@ export default function HomeScreen() {
     return `${takenCount}/${medications.length}`;
   }, [medications]);
 
+  const sendMessage = () => {
+    if (inputMessage.trim() === '') return;
+
+    if (inputMessage.toLowerCase() === '/clear') {
+      setChatMessages([]);
+      setInputMessage('');
+      return;
+    }
+
+    const newUserMessage: ChatMessage = {
+      id: Date.now().toString(),
+      text: inputMessage,
+      sender: 'user',
+      status: 'sent',
+    };
+
+    setChatMessages(prevMessages => [...prevMessages, newUserMessage]);
+    setInputMessage('');
+
+    // Simulate Cura's response
+    setTimeout(() => {
+      const loadingMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: '',
+        sender: 'cura',
+        status: 'loading',
+      };
+      setChatMessages(prevMessages => [...prevMessages, loadingMessage]);
+
+      // TODO: CALL API
+
+      // Simulate response delay
+      setTimeout(() => {
+        setChatMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === loadingMessage.id
+              ? { ...msg, text: 'Message Received', status: 'received' }
+              : msg
+          )
+        );
+      }, 3000);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [chatMessages]);
+
   return (
     <LinearGradient
       colors={['#A29BFF', '#EFEFFF']}
@@ -46,96 +122,141 @@ export default function HomeScreen() {
     >
       <StatusBar barStyle="light-content" backgroundColor="#A29BFF" />
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>Good morning, Ada!</ThemedText>
-          <View style={styles.nextDoseContainer}>
-            <ThemedText style={styles.nextDoseLabel}>Next Dose:</ThemedText>
-            <ThemedText style={styles.nextDoseTime}>4:00 PM</ThemedText>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.container}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <View style={styles.header}>
+            <ThemedText style={styles.title}>Good morning, Ada!</ThemedText>
+            <View style={styles.nextDoseContainer}>
+              <ThemedText style={styles.nextDoseLabel}>Next Dose:</ThemedText>
+              <ThemedText style={styles.nextDoseTime}>4:00 PM</ThemedText>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.calendarContainer}>
-          <View style={styles.monthYearContainer}>
-            <Ionicons name="calendar-outline" size={24} color="#FFFFFF" />
-            <ThemedText style={styles.monthYear}>October 2024</ThemedText>
-          </View>
-          <View style={styles.daysContainer}>
-            {weekDays.map((day, index) => (
-              <View key={index} style={styles.dayColumn}>
-                <ThemedText style={styles.dayText}>{day}</ThemedText>
-                <View 
-                  style={[
-                    styles.dateContainer, 
-                    index === 1 && styles.selectedDateContainer
-                  ]}
-                >
-                  <ThemedText 
+          <View style={styles.calendarContainer}>
+            <View style={styles.monthYearContainer}>
+              <Ionicons name="calendar-outline" size={24} color="#FFFFFF" />
+              <ThemedText style={styles.monthYear}>October 2024</ThemedText>
+            </View>
+            <View style={styles.daysContainer}>
+              {weekDays.map((day, index) => (
+                <View key={index} style={styles.dayColumn}>
+                  <ThemedText style={styles.dayText}>{day}</ThemedText>
+                  <View 
                     style={[
-                      styles.dateText, 
-                      index === 1 && styles.selectedDateText
+                      styles.dateContainer, 
+                      index === 1 && styles.selectedDateContainer
                     ]}
                   >
-                    {monthDates[index]}
-                  </ThemedText>
+                    <ThemedText 
+                      style={[
+                        styles.dateText, 
+                        index === 1 && styles.selectedDateText
+                      ]}
+                    >
+                      {monthDates[index]}
+                    </ThemedText>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.tabContainer}>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'SCHEDULE' && styles.activeTab]}
-            onPress={() => setActiveTab('SCHEDULE')}
-          >
-            <ThemedText style={activeTab === 'SCHEDULE' ? styles.activeTabText : styles.tabText}>
-              SCHEDULE
-            </ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'DEEP DIVE' && styles.activeTab]}
-            onPress={() => setActiveTab('DEEP DIVE')}
-          >
-            <ThemedText style={activeTab === 'DEEP DIVE' ? styles.activeTabText : styles.tabText}>
-              DEEP DIVE
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView 
-          contentContainerStyle={[
-            styles.scrollContent,
-            { backgroundColor: '#f7f7fc' }
-          ]}
-        >
-          {activeTab === 'SCHEDULE' ? (
-            <View style={styles.medicationList}>
-              <View style={styles.counterContainer}>
-                <ThemedText style={styles.todayText}>TODAY</ThemedText>
-                <ThemedText style={styles.counterText}>{medicationCounter}</ThemedText>
-              </View>
-              {medications.map(med => (
-                <TouchableOpacity 
-                  key={med.id} 
-                  style={styles.medicationCard}
-                  onPress={() => toggleMedication(med.id)}
-                >
-                  <View style={styles.medicationInfo}>
-                    <ThemedText style={styles.medicationName}>{med.name}</ThemedText>
-                    <ThemedText style={styles.medicationDetails}>{med.dose} | {med.time}</ThemedText>
-                  </View>
-                  <View style={[styles.checkbox, med.taken && styles.checkboxChecked]}>
-                    {med.taken && <Ionicons name="checkmark" size={18} color="#FFF" />}
-                  </View>
-                </TouchableOpacity>
               ))}
             </View>
-          ) : (
-            <View style={styles.deepDiveContainer}>
-              <ThemedText style={styles.deepDiveText}>Deep Dive Content Here</ThemedText>
-            </View>
-          )}
-        </ScrollView>
+          </View>
+
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              style={[styles.tab, activeTab === 'SCHEDULE' && styles.activeTab]}
+              onPress={() => setActiveTab('SCHEDULE')}
+            >
+              <ThemedText style={activeTab === 'SCHEDULE' ? styles.activeTabText : styles.tabText}>
+                SCHEDULE
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tab, activeTab === 'INSIGHTS' && styles.activeTab]}
+              onPress={() => setActiveTab('INSIGHTS')}
+            >
+              <ThemedText style={activeTab === 'INSIGHTS' ? styles.activeTabText : styles.tabText}>
+                INSIGHTS
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.contentContainer}>
+            {activeTab === 'SCHEDULE' ? (
+              <ScrollView contentContainerStyle={styles.medicationList}>
+                <View style={styles.counterContainer}>
+                  <ThemedText style={styles.todayText}>TODAY</ThemedText>
+                  <ThemedText style={styles.counterText}>{medicationCounter}</ThemedText>
+                </View>
+                {medications.map(med => (
+                  <TouchableOpacity 
+                    key={med.id} 
+                    style={styles.medicationCard}
+                    onPress={() => toggleMedication(med.id)}
+                  >
+                    <View style={styles.medicationInfo}>
+                      <ThemedText style={styles.medicationName}>{med.name}</ThemedText>
+                      <ThemedText style={styles.medicationDetails}>{med.dose} | {med.time}</ThemedText>
+                    </View>
+                    <View style={[styles.checkbox, med.taken && styles.checkboxChecked]}>
+                      {med.taken && <Ionicons name="checkmark" size={18} color="#FFF" />}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.deepDiveContainer}>
+                <ScrollView
+                  ref={scrollViewRef}
+                  contentContainerStyle={styles.chatContainer}
+                >
+                  {chatMessages.map((message) => (
+                    <View
+                      key={message.id}
+                      style={[
+                        styles.messageRow,
+                        message.sender === 'user' ? styles.userMessageRow : styles.curaMessageRow,
+                      ]}
+                    >
+                      {message.sender === 'cura' && (
+                        <View style={[styles.avatar, styles.curaAvatar]} />
+                      )}
+                      <View
+                        style={[
+                          styles.messageContainer,
+                          message.sender === 'user' ? styles.userMessage : styles.curaMessage,
+                        ]}
+                      >
+                        {message.status === 'loading' ? (
+                          <LoadingDots />
+                        ) : (
+                          <ThemedText style={styles.messageText}>{message.text}</ThemedText>
+                        )}
+                      </View>
+                      {message.sender === 'user' && (
+                        <View style={[styles.avatar, styles.userAvatar]} />
+                      )}
+                    </View>
+                  ))}
+                </ScrollView>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={inputMessage}
+                    onChangeText={setInputMessage}
+                    placeholder="Ask Cura..."
+                    placeholderTextColor="#888"
+                  />
+                  <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+                    <Ionicons name="arrow-up" size={24} color="#A29BFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -146,6 +267,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   safeArea: {
+    flex: 1,
+  },
+  container: {
     flex: 1,
   },
   header: {
@@ -247,22 +371,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  contentContainer: {
+    flex: 1,
+    backgroundColor: '#f7f7fc',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
   medicationList: {
-    paddingTop: 20,
+    padding: 20,
   },
   counterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
-    paddingHorizontal:4
   },
   todayText: {
     fontSize: 18,
@@ -309,11 +432,81 @@ const styles = StyleSheet.create({
   },
   deepDiveContainer: {
     flex: 1,
+    backgroundColor: '#f7f7fc',
+  },
+  chatContainer: {
+    padding: 15,
+    flexGrow: 1,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    alignItems: 'flex-start',
+  },
+  userMessageRow: {
+    justifyContent: 'flex-end',
+  },
+  curaMessageRow: {
+    justifyContent: 'flex-start',
+  },
+  messageContainer: {
+    borderRadius: 10,
+    padding: 10,
+    maxWidth: '70%',
+  },
+  userMessage: {
+    backgroundColor: '#E9E9FD',
+    marginLeft: 10,
+  },
+  curaMessage: {
+    backgroundColor: '#FFFFFF',
+    marginRight: 10,
+  },
+  messageText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 5,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 4
+  },
+  userAvatar: {
+    backgroundColor: '#CCCCCC',
+  },
+  curaAvatar: {
+    backgroundColor: '#A29BFF',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EFEFFF',
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#EFEFFF',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    marginRight: 10,
+    color: '#333',
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  deepDiveText: {
-    fontSize: 18,
-    color: '#6A5ACD',
+    backgroundColor: '#EFEFFF',
+    borderRadius: 20,
   },
 });
