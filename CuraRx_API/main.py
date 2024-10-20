@@ -199,7 +199,8 @@ async def get_next_question(audio_url="https://utfs.io/f/Oc8yBlzal2A90WnaAYfGTIV
     nextq = use_embeddings(audio_url=audio_url, name=name, age=age, sex=sex, meds_list=meds_list)
     print(nextq)
     get_tts(nextq)
-    return upload()
+    out_link = upload()
+    return {"link": out_link, "question": nextq}
 
 @app.get("/patients/{patient_id}")
 async def get_patient_data(patient_id: str):
