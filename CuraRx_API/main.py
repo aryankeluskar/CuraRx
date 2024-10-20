@@ -17,7 +17,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Specify the origins that should be allowed to make requests to this API
 origins = [
-    "https://cura.rx.vercel.app",  # Your frontend URL
+    "https://cura-rx-r177.vercel.app",  # Your frontend URL
 ]
 
 # Add the CORS middleware to the FastAPI app
