@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from supabase import create_client, Client
 import requests
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +14,9 @@ app = FastAPI()
 # Get Supabase credentials from environment variables
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+PLEX_API_KEY = os.getenv("PLEX_API_KEY")
+PLEX_API_URL = "https://api.perplexity.ai/chat/completions"
 
 # Specify the origins that should be allowed to make requests to this API
 origins = [
@@ -192,3 +195,58 @@ async def get_patient_data(patient_id: str):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+#faac91c6-63e7-4a0f-954f-ee1bc997d27c
+
+@app.get("/deepDive/{patient_id}")
+async def get_deepDive(patient_id: str, request: Request):
+    query_params = request.query_params
+    
+    question = query_params.get("question")
+    response =  deepDive(question, patient_id)
+    return {"response": response}
+
+
+def deepDive(question, patient_id):
+    # Set up API key and endpoint
+    #API_KEY = os.environ.get("PLEX_API_KEY")
+
+        #drug data 
+    patientdrugs = requests.get(f"https://cura-rx.vercel.app/patients/{patient_id}")
+    patientdrugs = patientdrugs.json()
+    drug_names = [med['drugName'] for med in patientdrugs['data'][0]['medication_schedule']]
+    print(drug_names)
+    context = ""
+
+    for drug in drug_names:
+        context += f"Drug: {drug}\n"
+        context += "Description: " + str(requests.get(f"https://cura-rx.vercel.app/drugs/getAllInfo/{drug}").json()) + "\n\n"
+
+
+
+  
+
+    headers = {
+        "Authorization": f"Bearer {PLEX_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    messages = [
+        {"role": "system", "content": "You are a helpful assitant who has been given infomration on the list of prescribed medicines a user is actively taking. All responses assume that the user is asking questions specifically in relation to thier medications."},
+        {"role": "user", "content": f"The following is context on the drugs I am currently taking, I am taking all of them: {context}\n\nQuestion: {question}. This question is in relation to the medications I am currently taking. Please use the provided infomration to answer the question, alongside any other online sources you would like."},
+    ]
+
+    data = {
+        "model": "llama-3.1-sonar-small-128k-online",
+        "messages": messages,
+        "max_tokens": len(drug_names) * 145,
+        "temperature": 0.5,
+    }
+
+    response = requests.post(PLEX_API_URL, headers=headers, json=data)
+
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Error: {response.status_code}. {response.text}"
+
