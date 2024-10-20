@@ -4,7 +4,7 @@ from supabase import create_client, Client
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 
-
+from deep import use_embeddings, get_tts, upload
 
 import json
 from hume import HumeClient
@@ -193,6 +193,13 @@ async def get_sentiment(audio_url):
         "top5": top5
     }
 
+
+@app.get("/next_question")
+async def get_next_question(audio_url="https://utfs.io/f/Oc8yBlzal2A90WnaAYfGTIVRWAvzgNHFxpdrO4wy6Yb8h2EZ", name="Aryan", age=18, sex="Male", meds_list=["Ibuprofen"]):
+    nextq = use_embeddings(audio_url=audio_url, name=name, age=age, sex=sex, meds_list=meds_list)
+    print(nextq)
+    get_tts(nextq)
+    return upload()
 
 @app.get("/patients/{patient_id}")
 async def get_patient_data(patient_id: str):
