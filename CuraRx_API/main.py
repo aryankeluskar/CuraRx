@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
+from fastapi.middleware.cors import CORSMiddleware
 
 
 
@@ -13,6 +14,21 @@ app = FastAPI()
 # Get Supabase credentials from environment variables
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Specify the origins that should be allowed to make requests to this API
+origins = [
+    "https://cura-rx-r177-ppht1qolm-ragrwal1s-projects.vercel.app",  # Your frontend URL
+]
+
+# Add the CORS middleware to the FastAPI app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allows only the specified origins
+    allow_credentials=True,  # Allows cookies to be sent with the request
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
+
 
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
