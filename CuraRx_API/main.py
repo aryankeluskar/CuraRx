@@ -3,8 +3,7 @@ from fastapi import FastAPI, HTTPException
 from supabase import create_client, Client
 import requests
 
-from dotenv import load_dotenv
-load_dotenv()
+
 
 import json
 from hume import HumeClient
@@ -161,6 +160,8 @@ async def get_sentiment(audio_url):
             top3_str += ","
 
     return top3_str
+
+
 @app.get("/patients/{patient_id}")
 async def get_patient_data(patient_id: str):
     try:

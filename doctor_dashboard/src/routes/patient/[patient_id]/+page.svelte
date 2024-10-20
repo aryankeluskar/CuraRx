@@ -1,55 +1,35 @@
 <script>
+  import { onMount } from 'svelte';
   import { page } from '$app/stores';
 
   // Get the patient_id from the URL
   $: patient_id = $page.params.patient_id;
 
-  let patientData = {
-      "name": "John Doe",
-      "uuid": "987e6543-a21b-12c3-b456-426614174000",
-      "sex": "M",
-      "success_percentage": 85,
-      "preexisting_conditions": "Hypertension, Type 2 Diabetes",
-      "last_checkin": "2024-10-18T14:30:00",
-      "last_set_of_notes": "Patient has shown improved adherence to Metformin, blood sugar levels have stabilized.",
-      "health_level": 7,
-      "medication_schedule": [
-          {
-              "drugName": "Metformin",
-              "drugNickname": "Met",
-              "dosage": "500mg",
-              "times": {
-                  "monday": ["14:00", "16:00"],
-                  "wednesday": ["15:00"],
-                  "friday": ["14:00", "16:00"]
-              }
-          },
-          {
-              "drugName": "Vitamin D",
-              "drugNickname": "Sunshine",
-              "dosage": "1000 IU",
-              "times": {
-                  "monday": ["09:00"],
-                  "thursday": ["09:00"]
-              }
-          },
-          {
-              "drugName": "Aspirin",
-              "drugNickname": "Heart Helper",
-              "dosage": "81mg",
-              "times": {
-                  "tuesday": ["08:00"],
-                  "thursday": ["08:00"],
-                  "saturday": ["08:00"]
-              }
-          }
-      ]
-  };
+  let patientData = null;
+  let error = null;
 
+  // Fetch the patient data from the API when the component mounts
+  onMount(async () => {
+    try {
+  
+      const response = await fetch(`https://cura-rx.vercel.app/patients/faac91c6-63e7-4a0f-954f-ee1bc997d27c`);
+      const data = await response.json();
+      console.log(data)
+      patientData = data.data[0];
+
+      // Handle any formatting anomalies if needed
+      patientData.preexisting_conditions = patientData.preexisting_conditions.replace(/,\s+/g, ', ');
+      patientData.last_checkin = new Date(patientData.last_checkin).toLocaleString();
+    } catch (err) {
+      error = 'Failed to load patient data. Please try again later.';
+      console.error(err);
+    }
+  });
 
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   function getMedicationsForDay(day) {
+    if (!patientData) return [];
     return patientData.medication_schedule.filter(med => 
       med.times[day.toLowerCase()] && med.times[day.toLowerCase()].length > 0
     );
@@ -64,57 +44,63 @@
 </script>
 
 <div class="patient-dashboard">
-  <div class="patient-header">
-    <h1>{patientData.name} (ID: {patient_id})</h1>
-    <p><strong>UUID:</strong> {patientData.uuid}</p>
-    <p><strong>Gender:</strong> {patientData.sex === 'M' ? 'Male' : 'Female'}</p>
-    <p><strong>Health Level:</strong> {patientData.health_level}/10</p>
-    <p><strong>Last Check-In:</strong> {new Date(patientData.last_checkin).toLocaleString()}</p>
-  </div>
-
-  <div class="patient-bento">
-    <div class="bento-box">
-      <h2>Success Rate</h2>
-      <div class="speedometer">
-        <div class="speedometer-arc">
-          <div class="speedometer-fill" style="--percentage: {patientData.success_percentage}"></div>
-        </div>
-        <div class="speedometer-value">{patientData.success_percentage}%</div>
-      </div>
+  {#if error}
+    <p>{error}</p>
+  {:else if patientData}
+    <div class="patient-header">
+      <h1>{patientData.name} (ID: {patient_id})</h1>
+      <p><strong>UUID:</strong> {patientData.id}</p>
+      <p><strong>Gender:</strong> {patientData.sex === 'M' ? 'Male' : 'Female'}</p>
+      <p><strong>Health Level:</strong> {patientData.health_level}/10</p>
+      <p><strong>Last Check-In:</strong> {patientData.last_checkin}</p>
     </div>
 
-    <div class="bento-box">
-      <h2>Preexisting Conditions</h2>
-      <p>{patientData.preexisting_conditions}</p>
-    </div>
-
-    <div class="bento-box">
-      <h2>Last Notes</h2>
-      <p>{patientData.last_set_of_notes}</p>
-    </div>
-
-    <div class="medication-calendar">
-      <h2>Weekly Medication Schedule</h2>
-      <div class="calendar-grid">
-        {#each weekDays as day}
-          <div class="calendar-day">
-            <h3>{day}</h3>
-            {#each getMedicationsForDay(day) as med}
-              <div class="medication-pill" style="--pill-color: {med.drugName === 'Metformin' ? '#bae6fd' : med.drugName === 'Vitamin D' ? '#fef3c7' : '#ddd6fe'}">
-                <strong>{med.drugName}</strong>
-                <span class="dosage">({med.dosage})</span>
-                <div class="medication-time">
-                  {#each med.times[day.toLowerCase()] as time}
-                    <span>{formatTime(time)}</span>
-                  {/each}
-                </div>
-              </div>
-            {/each}
+    <div class="patient-bento">
+      <div class="bento-box">
+        <h2>Success Rate</h2>
+        <div class="speedometer">
+          <div class="speedometer-arc">
+            <div class="speedometer-fill" style="--percentage: {patientData.success_percentage}"></div>
           </div>
-        {/each}
+          <div class="speedometer-value">{patientData.success_percentage}%</div>
+        </div>
+      </div>
+
+      <div class="bento-box">
+        <h2>Preexisting Conditions</h2>
+        <p>{patientData.preexisting_conditions}</p>
+      </div>
+
+      <div class="bento-box">
+        <h2>Last Notes</h2>
+        <p>{patientData.last_notes}</p>
+      </div>
+
+      <div class="medication-calendar">
+        <h2>Weekly Medication Schedule</h2>
+        <div class="calendar-grid">
+          {#each weekDays as day}
+            <div class="calendar-day">
+              <h3>{day}</h3>
+              {#each getMedicationsForDay(day) as med}
+                <div class="medication-pill" style="--pill-color: {med.drugName === 'Metformin' ? '#bae6fd' : med.drugName === 'Vitamin D' ? '#fef3c7' : '#ddd6fe'}">
+                  <strong>{med.drugName}</strong>
+                  <span class="dosage">({med.dosage})</span>
+                  <div class="medication-time">
+                    {#each med.times[day.toLowerCase()] as time}
+                      <span>{formatTime(time)}</span>
+                    {/each}
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
-  </div>
+  {:else}
+    <p>Loading patient data...</p>
+  {/if}
 </div>
 
 <style>
