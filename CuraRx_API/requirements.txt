@@ -36,3 +36,4 @@ typing_extensions==4.12.2
 urllib3==2.2.3
 websockets==13.1
 yarl==1.15.5
+hume==0.7.2
