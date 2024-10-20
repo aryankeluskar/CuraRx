@@ -250,4 +250,32 @@ def deepDive(question, patient_id):
         return response.json()["choices"][0]["message"]["content"]
     else:
         return f"Error: {response.status_code}. {response.text}"
+    
+    
+@app.get("/patientsOverview")
+async def get_all_patients_overview():
+    try:
+        # Query the Supabase table named 'patients' to get all patient records
+        response = supabase.from_("patients").select("*").execute()
+        
+        # If no records found, return a 404
+        if not response.data or len(response.data) == 0:
+            raise HTTPException(status_code=404, detail="No patients found")
 
+        # Extract necessary information from the response
+        patients_data = response.data
+
+        # Create the desired format with patient_id
+        formatted_patients = [
+            {
+                "name": patient["name"],
+                "riskLevel": "Low" if patient["health_level"] > 7 else "Medium" if 5 <= patient["health_level"] <= 7 else "High",  # Example riskLevel logic
+                "patient_id": patient["id"]
+            }
+            for patient in patients_data
+        ]
+
+        return {"patients": formatted_patients}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
