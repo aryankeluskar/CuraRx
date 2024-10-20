@@ -57,7 +57,7 @@ export default function ConfirmScreen() {
   }));
 
   if (!assets) {
-    return null; // or a loading indicator
+    return null;
   }
 
   return (
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   curaBot: {
     width: 300,
     height: 188,
-    marginBottom: 70,
+    marginBottom: 150,
   },
   buttonContainer: {
     alignItems: 'center',

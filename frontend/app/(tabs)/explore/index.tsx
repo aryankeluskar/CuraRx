@@ -61,7 +61,7 @@ export default function ExploreScreen() {
   };
 
   if (!assets) {
-    return null; // or a loading indicator
+    return null; 
   }
 
   return (
